@@ -1,11 +1,11 @@
 # AngularLearning
 Practice of basic web feature using Angular, including socket, authentication, mongodb connection etc
 
-##iochat
+##1, iochat
 
 A implementation of socket.io, long time, two way communication method library
 
-#####Setup
+####Setup
 
 First things first, init the node project. open terminal to the specfic folder, input the folloing code
 
@@ -68,14 +68,14 @@ just follow the guide, after that you will get a `package.json` file. Add depend
   }
 ```
 
-#####Install library
+####Install library
 input npm install in terminal
 
 ```
 npm install
 ```
 
-#####Setting up the server.js 
+####Setting up the server.js 
 server.js defines the function of socket, including the connection, username, message.
 
 ```javascript
@@ -131,7 +131,7 @@ io.sockets.on('connection', function(socket){
 });
 ```
 
-#####Setting up index.html
+####Setting up index.html
 
 ```html
 
@@ -245,7 +245,84 @@ io.sockets.on('connection', function(socket){
   </body>
 </html>
 ```
-#####Test
+
+####Highlight
+
+#####connection
+```javascript
+
+//server.js
+var io = require('socket.io')(http);
+
+io.sockets.on('connection', function(socket){
+  connections.push(socket);
+  console.log('Connected: %s sockets connected', connections.length);
+
+
+  //disconnect
+  socket.on('disconnect', function(data){
+    // if (!socket.username) return;
+    users.splice(users.indexOf(socket.username), 1);
+    updateUsernames();
+
+    connections.splice(connections .indexOf(socket), 1);
+    console.log('Disconnected: %s sockets connected', connections.length);
+  });
+```
+
+Initialize a new instance of 'socket.io' by passing the 'http' (the HTTP server) object. Then listen on the 'connection' event for incoming sockets, and log the sockets number
+
+```javascript
+
+// index.html
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io();
+</script>
+```
+
+#####Emitting events
+When the user types in a message, the server gets it as a chat message event
+
+```javascript
+
+//index.html
+<script>
+var socket = io.connect();
+
+$messageForm.submit(function(e){
+	e.preventDefault();
+	socket.emit('send message', $message.val());
+	$message.val('')
+	console.log('Submitted', $message.val());
+	});
+</script>
+```
+
+And in 'server.js', we print out the 'chat message' event
+```javascript
+socket.on('send message', function(data){
+	console.log(data);
+    io.sockets.emit('new message', {msg:data, user:socket.username});
+});
+```
+
+#####Boradcasting
+In order to send an event to everyone, we use 'io.emit'
+
+```javascript
+io.sockets.emit('new message', {msg:data, user:socket.username});
+```
+
+As the client side when we capture a 'chat message' event we'll include it in the page. 
+
+```javascript
+        socket.on('new message', function(data){
+          $chat.append('<div class="well"><strong>'+data.user+'</strong>: '+data.msg+'</div>')
+        })
+```
+
+####Test
 input node server in terminal
 
 ```
